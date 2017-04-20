@@ -1,0 +1,3 @@
+[submodule "hakaru"]
+	path = hakaru
+	url = https://github.com/hakaru-dev/hakaru
