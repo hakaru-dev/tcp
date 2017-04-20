@@ -17,3 +17,6 @@ cabal.sandbox.config
 *.eventlog
 .stack-work/
 cabal.project.local
+20news.Rdata
+20news-19997.tar.gz
+20_newsgroups/
