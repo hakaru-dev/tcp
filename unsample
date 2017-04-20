@@ -1,0 +1,4 @@
+#!/usr/bin/perl -0777 -p
+BEGIN { $np = qr{(?:(?>[^()]+)|\((??{$np})\))*} } # from perlre man page
+s/\bweight\s*\($np,\s*categorical(\($np\))\s*\)/$1/s;
+s/\breject\s*\.$np/array i of 0: 0.0/s;
