@@ -7,7 +7,6 @@ run:
 	sh run.sh
 
 clean:
-	rm -f src/NaiveBayes.hs src/naive_bayes_simp.hk
 	stack clean
 
 distclean : clean
