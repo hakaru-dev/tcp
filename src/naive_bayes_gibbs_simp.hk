@@ -4,7 +4,9 @@ fn topic_prior array(prob):
    fn w array(nat): 
     fn doc array(nat): 
      fn docUpdate nat: 
-      array zNew丏 of size(topic_prior): 
+      (match (docUpdate < size(z)): 
+        true: 
+         (array zNew丏 of size(topic_prior): 
                              ((product i from 0 to size(topic_prior): 
                                 (product i丣 from 0 to size(word_prior): 
                                   (product j from 0 to (summate i丙 from 0 to size(w): 
@@ -65,4 +67,5 @@ fn topic_prior array(prob):
                                     + 
                                    nat2prob(i丣)
                                     + 
-                                   (summate i丙 from 0 to size(word_prior): word_prior[i丙])))))
+                                   (summate i丙 from 0 to size(word_prior): word_prior[i丙]))))))
+        false: array i of 0: 0.0)
