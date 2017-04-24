@@ -10,7 +10,7 @@ clean:
 	stack clean
 
 distclean : clean
-	rm -f src/naive_bayes_simp.hk src/NaiveBayes.hs *.o *.hi *.core
+	rm -f src/naive_bayes_gibbs_simp.hk src/NaiveBayes.hs *.o *.hi *.core
 	rm -rf 20news-19997.tar.gz 20_newsgroups
 
 src/naive_bayes_gibbs_simp.hk:
