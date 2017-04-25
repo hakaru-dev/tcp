@@ -34,7 +34,10 @@ Our approach is expressed across several components:
 The processing pipeline has several steps:
 1. The Hakaru command-line tool `simplify` is called to transform the original Hakaru model file into one that can be executed more efficiently. The result is Hakaru code to sample from the posterior distribution.
 1. `unsample` removes the sampling operation, resulting in Hakaru code that returns the posterior class probabilities.
-1. 
+1. `summary` tranforms this by introducing data types that can more efficiently represent aggregation operations, and outputs Haskell source code `NaiveBayes.hs`
+1. The `prog` function from the `NaiveBayes` module is called from the `Main` module, which maps over all indices, leaving one out at each step.
+1. The `Main` module performs *maximum a posteriori* estimation of the posterior class, just finding the maximal posterior class probability.
+
 
 ### The Hakaru Code
 
