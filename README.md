@@ -4,6 +4,8 @@ The Hakaru Team Challenge Problem focuses on modulularity. We will implement a v
 
 Our first step in this process is a *Naive Bayes* (NB) model. NB is not specific to text analysis, but is really a class of models; an NB model is one that assumes the features are independent. Though this assumption is seldom valid, it leads to great simplification for inference, and the loss of fit relative to a model with more complex dependencies is often surprisingly small.
 
+In contrast with most other models we'll examine, the NB model presented here is *supervised*. We train on a 
+
 ## Quick Start
 
 The `tcp` repository includes the main `hakaru` repository as a submodule, so cloning requires an additional `--recursive` switch. (see [Git-SCM](https://git-scm.com/book/en/v2/Git-Tools-Submodules) for details)
@@ -17,14 +19,22 @@ make
 make run
 ```
 
-The result of this is the file `nb-confusion.pdf`, a plot of the *confusion matrix*, comparing pre
+The result of this is the file `nb-confusion.pdf`, a plot of the *confusion matrix*, comparing predicted 
 
 
 
-## Components
+## Operation
 
+Our approach is expressed across several components:
 * The Hakaru Code `naive-bayes-gibbs.hk`
-* The 
+* Haskell code to read in data
+* Haskell code to call Hakaru and output true vs predicted class assignments
+* R code to aggregate the result into a confusion matrix and produce an image
+
+The processing pipeline has several steps:
+1. The Hakaru command-line tool `simplify` is called to transform the original Hakaru model file into one that can be executed more efficiently. The result is Hakaru code to sample from the posterior distribution.
+1. `unsample` removes the sampling operation, resulting in Hakaru code that returns the posterior class probabilities.
+1. 
 
 ### The Hakaru Code
 
