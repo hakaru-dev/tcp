@@ -4,7 +4,8 @@ data:
 	bash ./download-data.sh
 
 run:
-	sh run.sh
+	stack exec tcp > nb-confusion.csv
+	R CMD BATCH confusion.R
 
 clean:
 	stack clean
