@@ -41,6 +41,16 @@ The processing pipeline has several steps:
 
 ### The Hakaru Code
 
+The Hakaru code includes two functions:
+* `dirichlet` takes an array of probabilities and returns a measure corresponding to the Dirichlet distribution. This can be re-used across models. This will soon be simpler with the coming implementation of an `include` primitive.
+* `naive_bayes` represents the model itself. This takes several parameters:
+  - `topic_prior` and `word_prior` are prior marginal probabilities on topics (class assignments) and words, respectively.
+  - `z` if an array mapping a given document index to the corresponding topic.
+  - `w` is an array mapping a given token to its ID in the vocabulary. This is stored as if all documents were concatenated.
+  - `doc` is the document ID of a given token. 
+  - `docUpdate` is the document ID to be excluded from the training set, and instead used for evaluation. 
+  
+
 ```
 def dirichlet(as array(prob)):
     xs <~ plate i of int2nat(size(as)-1):
@@ -49,6 +59,8 @@ def dirichlet(as array(prob)):
     return array i of size(as):
              x = product j from 0 to i: xs[j]
              x * if i+1==size(as): 1 else: real2prob(1-xs[i])
+
+---------------------------------------------------------------------
 
 def naive_bayes( topic_prior array(prob)
                , word_prior array(prob)
