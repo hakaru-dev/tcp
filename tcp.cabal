@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     News
-                     , Scaffold
+                     , Utils
                      , NaiveBayes
   build-depends:       base >= 4.7 && < 5
                      , unordered-containers
@@ -35,7 +35,7 @@ library
 
 executable tcp
   hs-source-dirs:      app
-  main-is:             Main.hs
+  main-is:             TCP.hs
   ghc-options:         
     -O2 
     -threaded 

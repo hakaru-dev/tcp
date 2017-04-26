@@ -3,7 +3,7 @@ module Main where
 import qualified Data.ByteString.Char8 as B
 import News (getNews)
 import qualified System.Random.MWC as MWC
-import Scaffold
+import Utils
 import qualified Data.Vector.Unboxed as V
 import Data.Vector.Unboxed ((!))
 import Text.Printf (printf)
@@ -13,7 +13,7 @@ import Data.List (sort)
 import Data.Number.LogFloat
 
 main = do
-  (words, docs, topics) <- getNews (Just 100) [0..]
+  (words, docs, topics) <- getNews (Just 10) [0..]
   g <- MWC.create
   let 
     zPrior = onesFrom topics

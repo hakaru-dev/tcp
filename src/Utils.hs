@@ -5,7 +5,7 @@
 #-}
 
 
-module Scaffold where
+module Utils where
 
 import Data.Vector.Unboxed.Deriving
 import NaiveBayes (prog)
