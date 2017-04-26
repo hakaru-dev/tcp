@@ -5,7 +5,7 @@ data:
 
 run:
 	stack exec tcp > nb-confusion.csv
-	R CMD BATCH confusion.R
+	Rscript confusion.R
 
 clean:
 	stack clean
