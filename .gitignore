@@ -35,3 +35,9 @@ test.R
 test.Rdata
 test/
 tmp.hk
+/confusion.Rout
+/dep.svg
+/live-heap
+/nb-confusion.pdf
+/nb-confusion.png
+/ppaml.mla
