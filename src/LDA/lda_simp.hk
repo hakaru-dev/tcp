@@ -1,0 +1,44 @@
+fn topic_prior array(prob): 
+ fn word_prior array(prob): 
+  fn z array(nat): 
+   fn w array(nat): 
+    fn doc array(nat): 
+     fn numDocs nat: 
+      fn wordUpdate nat: 
+       (match (wordUpdate < size(w)): 
+         true: 
+          (array zNew丑 of size(topic_prior): 
+                              ((product d from 0 to size(w): 
+                                 (match ((d == doc[wordUpdate]) && 
+                                         not((doc[wordUpdate] < 0)) && 
+                                         not(((nat2int(size(w)) - 1) < nat2int(doc[wordUpdate])))): 
+                                   true: 
+                                    (nat2prob((summate d両 from 0 to size(w): 
+                                                (match (d両 == wordUpdate): 
+                                                  true: 0
+                                                  false: 
+                                                   (match ((d == doc[d両]) && (zNew丑 == z[d両])): 
+                                                     true: 1
+                                                     false: 0))))
+                                      + 
+                                     topic_prior[zNew丑])
+                                   false: 1))
+                                / 
+                               (product d from 0 to size(w): 
+                                 (match (not(((nat2int(size(w)) - 1)
+                                               < 
+                                              nat2int(doc[wordUpdate]))) && 
+                                         not((doc[wordUpdate] < 0)) && 
+                                         (d == doc[wordUpdate])): 
+                                   true: 
+                                    (nat2prob((summate d両 from 0 to size(w): 
+                                                (match (d両 == wordUpdate): 
+                                                  true: 0
+                                                  false: 
+                                                   (match (not((z[d両] < 0)) && (d == doc[d両])): 
+                                                     true: 1
+                                                     false: 0))))
+                                      + 
+                                     (summate d両 from 0 to size(topic_prior): topic_prior[d両]))
+                                   false: 1))))
+         false: array i of 0: 0.0)

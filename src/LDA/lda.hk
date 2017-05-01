@@ -1,0 +1,41 @@
+## Supervised Naive Bayes
+def dirichlet(as array(prob)):
+    xs <~ plate i of int2nat(size(as)-1):
+            beta(summate j from i+1 to size(as): as[j],
+                 as[i])
+    return array i of size(as):
+             x = product j from 0 to i: xs[j]
+             x * if i+1==size(as): 1 else: real2prob(1-xs[i])
+
+def naive_bayes( topic_prior array(prob)
+               , word_prior array(prob)
+               , z array(nat)
+               , w array(nat)
+               , doc array(nat)
+               , numDocs nat
+               , wordUpdate nat ):
+  numTopics = size(topic_prior)
+  numDocs = size(z)
+  numWords = size(w)
+
+  if wordUpdate < numWords:
+    theta <~ plate d of numWords:
+      dirichlet(topic_prior)   # topic prevalence
+
+    phi <~ plate k of numTopics:
+      dirichlet(word_prior) # word dist for topic k
+
+    zNew <~ categorical(array i of numTopics: 1)
+
+    foo <~ plate n of numWords:
+      zz = if n == wordUpdate: zNew else: z[n]
+      observe categorical(theta[doc[n]]) zz
+
+    bar <~ plate n of numWords:   # word n
+      observe categorical(phi[z[n]]) w[n]
+
+    return zNew
+
+  else: reject. measure(nat)
+
+naive_bayes
