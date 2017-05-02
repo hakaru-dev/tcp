@@ -7,7 +7,7 @@ import Utils
 import qualified Data.Vector.Unboxed as V
 import Data.Vector.Unboxed ((!))
 import Text.Printf (printf)
-import NaiveBayes (prog)
+import NaiveBayes.Model (prog)
 import Control.Monad (forever, replicateM, forM_)
 import Data.List (sort)
 import Data.Number.LogFloat

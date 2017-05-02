@@ -8,7 +8,6 @@
 module Utils where
 
 import Data.Vector.Unboxed.Deriving
-import NaiveBayes (prog)
 import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as MV
 import Data.Vector.Unboxed (Vector)

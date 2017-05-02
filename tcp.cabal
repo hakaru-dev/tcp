@@ -17,7 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     News
                      , Utils
-                     , NaiveBayes
+                     , NaiveBayes.Model
   build-depends:       base >= 4.7 && < 5
                      , unordered-containers
                      , containers
@@ -33,9 +33,27 @@ library
                      , vector-th-unbox
   default-language:    Haskell2010
 
-executable tcp
+executable tcp1
   hs-source-dirs:      app
-  main-is:             TCP.hs
+  main-is:             TCP1.hs
+  ghc-options:         
+    -O2 
+    -threaded 
+    -fprof-auto 
+ --   -rtsopts 
+ --   "-with-rtsopts=-N -p -s -h -i0.1"
+  build-depends:       base
+                     , tcp
+                     , unordered-containers
+                     , bytestring
+                     , logfloat
+                     , mwc-random
+                     , vector
+  default-language:    Haskell2010
+
+executable tcp2
+  hs-source-dirs:      app
+  main-is:             TCP2.hs
   ghc-options:         
     -O2 
     -threaded 

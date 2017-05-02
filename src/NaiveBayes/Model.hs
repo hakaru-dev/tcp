@@ -1,5 +1,5 @@
 {-# LANGUAGE DataKinds, NegativeLiterals #-}
-module NaiveBayes where
+module NaiveBayes.Model where
 
 import           Data.Number.LogFloat hiding (product)
 import           Prelude              hiding (product, exp, log, (**))
