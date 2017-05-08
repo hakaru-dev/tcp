@@ -30,7 +30,24 @@ library
                      , mwc-random
                      , hakaru
                      , logfloat 
-                     , vector-th-unbox
+  default-language:    Haskell2010
+
+executable getNews
+  hs-source-dirs:      app
+  main-is:             GetNews.hs
+  ghc-options:         
+    -O2 
+    -threaded 
+    -fprof-auto 
+ --   -rtsopts 
+ --   "-with-rtsopts=-N -p -s -h -i0.1"
+  build-depends:       base
+                     , tcp
+                     , unordered-containers
+                     , bytestring
+                     , logfloat
+                     , mwc-random
+                     , vector
   default-language:    Haskell2010
 
 executable tcp1
@@ -51,23 +68,24 @@ executable tcp1
                      , vector
   default-language:    Haskell2010
 
-executable tcp2
-  hs-source-dirs:      app
-  main-is:             TCP2.hs
-  ghc-options:         
-    -O2 
-    -threaded 
-    -fprof-auto 
- --   -rtsopts 
- --   "-with-rtsopts=-N -p -s -h -i0.1"
-  build-depends:       base
-                     , tcp
-                     , unordered-containers
-                     , bytestring
-                     , logfloat
-                     , mwc-random
-                     , vector
-  default-language:    Haskell2010
+-- executable tcp2
+--   hs-source-dirs:      app
+--   main-is:             TCP2.hs
+--   ghc-options:         
+--     -O2 
+--     -threaded 
+--     -fprof-auto 
+--  --   -rtsopts 
+--  --   "-with-rtsopts=-N -p -s -h -i0.1"
+--   build-depends:       base
+--                      , tcp
+--                      , unordered-containers
+--                      , bytestring
+--                      , logfloat
+--                      , mwc-random
+--                      , vector
+--                      , hakaru
+--   default-language:    Haskell2010
 
 test-suite tcp-test
   type:                exitcode-stdio-1.0
