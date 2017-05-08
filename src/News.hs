@@ -34,13 +34,34 @@ data Encoding a = Encoding
   (HashMap a Int)  -- The integer encoding
     deriving Show
 
-type EncodeState k a = StateT (Encoding k) IO a
-
 empty :: Encoding a
 empty = Encoding 0 [] H.empty
 
-run :: Monad m => StateT (Encoding k) m a -> m a
-run x = evalStateT x empty
+filterE :: (a -> Bool) -> Encoding a -> Encoding a
+filterE p enc = undefined
+
+-- compose two 'HashMap's, considering them as partial functions
+composeH :: (Eq b, Hashable b) => 
+  H.HashMap a b -> H.HashMap b c -> H.HashMap a c
+composeH hab hbc = H.mapMaybe (\b -> H.lookup b hbc) hab
+
+-- | Compose two bijections 'a <-> Int' and 'Int <-> Int'
+-- Not sure yet this is the "right way"
+compose :: (Eq a, Hashable a) => 
+  Encoding a -> Encoding Int -> Encoding a
+compose (Encoding n1 v1 h1) (Encoding n2 v2 h2) = Encoding n v h
+  where
+  n = H.size h
+  v = filter (flip H.member h) v1
+  h = composeH h1 h2
+
+-------------------------------------------------------------------------------
+
+
+type EncodeState k a = StateT (Encoding k) IO a
+
+run :: Monad m => StateT (Encoding k) m a -> m (a, Encoding k)
+run x = runStateT x empty
 
 encode :: (Eq k, Hashable k, Monad m) => k -> StateT (Encoding k) m Int
 encode x = do
@@ -86,11 +107,12 @@ encodeDirs path = do
 path = "20_newsgroups/"
 
 -- | Map 'Int's to a new set of contiguous values (remove the holes) 
-recode :: [[[Int]]] -> [[[Int]]]
-recode = runIdentity . run . (traverse . traverse . traverse $ encode)
+recode :: (Hashable a, Eq a) => 
+  [[[a]]] -> EncodeState a [[[Int]]]
+recode = traverse . traverse . traverse $ encode
 
 removeSingletons :: [[[Int]]] -> [[[Int]]]
-removeSingletons xs = recode . map (map $ filter notSingle) $ xs
+removeSingletons xs = map (map $ filter notSingle) $ xs
   where
   notSingle x = IntSet.notMember x singletons
   singletons = IntMap.keysSet . IntMap.filter (== 1) $ counts
@@ -118,12 +140,19 @@ asArrays groupList = (wordIndices, docIndices, topicIndices)
   go _ _ _ = []
 
 -- To retrieve everything, 'getNews Nothing [0..]'
-getNews :: Maybe Int -> [Int] -> IO (Vector Int, Vector Int, Vector Int)
-getNews maxDocs topics = fmap (asArrays . removeSingletons) $ run enc
-  where
-  enc = case maxDocs of
+getNews
+  :: Maybe Int
+  -> [Int]
+  -> IO ((Vector Int, Vector Int, Vector Int), Encoding B.ByteString)
+getNews maxDocs topics = do
+  (docs1, enc1) <- run $ case maxDocs of
     Nothing -> fmap (!!! topics) $ encodeDirs path
     Just d  -> fmap (map (take d) . (!!! topics)) $ encodeDirs path
+  (docs2, enc2) <- run . recode $ removeSingletons docs1
+  let 
+    news = asArrays docs2
+    enc = compose enc1 enc2
+  return (news, enc)
 
 isStopword :: B.ByteString -> Bool
 isStopword b = S.member b stopwords
