@@ -5,18 +5,59 @@ import News (getNews)
 import qualified System.Random.MWC as MWC
 import Utils
 import qualified Data.Vector.Unboxed as V
-import Data.Vector.Unboxed ((!))
+import qualified Data.Vector
+import Data.Vector.Unboxed (Vector)
+-- import Data.Vector.Unboxed ((!))
+import qualified Data.Vector.Unboxed.Mutable as MV
 import Text.Printf (printf)
-import NaiveBayes.Model (prog)
+import LDA.Model (prog)
 import Control.Monad (forever, replicateM, forM_)
 import Data.List (sort)
 import Data.Number.LogFloat
+import Language.Hakaru.Runtime.LogFloatPrelude
+
+
+-- |Step through documents, performing one Gibbs sampling iteration
+-- on each to select a new topic. 
+gibbsRound 
+     :: Vector Double        -- prior probability of each topic
+     -> Vector Double        -- prior probability of each word
+     -> Vector Int           -- topics, indexed by document 
+     -> Vector Int           -- words, indexed by token position
+     -> Vector Int           -- document, indexed by token position
+     -> Measure (Vector Int) -- distribution over the updated topic
+gibbsRound zPrior wPrior z w d = Measure $ \g -> do
+  let
+    numTokens = V.length z
+    loop i mz = 
+      if i == numTokens then Just <$> V.unsafeFreeze mz
+      else do
+        z <- V.unsafeFreeze mz
+        maybeTopic <- unMeasure (prog zPrior wPrior z w d i) g
+        case maybeTopic of
+          Nothing -> return Nothing
+          Just topic -> do
+            mz' <- V.unsafeThaw z
+            MV.write mz' i topic
+            loop (i + 1) mz'
+  loop 0 =<< V.thaw z
+
+-- -- |Wrap 'gibbsRound' for simple testing
+next :: Vector Int -> Measure (Vector Int)
+next z = gibbsRound zPrior wPrior z w d
+  where
+  r = replicate 5
+  zPrior = V.fromList [1,1]
+  wPrior = V.fromList [1,1,1]
+  w      = V.fromList $ r 0 ++ r 1 ++ r 0 ++ r 2
+  d      = V.fromList $ r 0 ++ r 0 ++ r 1 ++ r 1
 
 main = do
   (words, docs, topics) <- getNews (Just 10) [0..]
   g <- MWC.create
   let 
-    zPrior = onesFrom topics
+    numTopics = 5
+    zPrior = V.fromList $ replicate numTopics 1
     wPrior = onesFrom words
     predict = prog zPrior wPrior topics words docs
   -- printf "length zPrior == %d\n" (V.length zPrior)

@@ -19,7 +19,7 @@ import Data.Vector.Unboxed (Vector)
 import Control.Monad.Identity (runIdentity)
 import qualified Data.IntMap as IntMap
 import qualified Data.IntSet as IntSet
-import Data.List (foldl')
+import Data.List (foldl', sort)
 
 -- import Filesystem.Path.Internal.FilePath (FilePath)
 
@@ -28,10 +28,11 @@ import Data.List (foldl')
 -- * length xs == H.size h == n
 -- * n>0 => H.lookup (head xs) h == Just (n-1)
 -- * n>0 => H.lookup (last xs) h == Just 0
-data Encoding a = Encoding 
-  Int              -- The number of entries
-  [a]              -- The decoded values
-  (HashMap a Int)  -- The integer encoding
+data Encoding a = Encoding
+  { size         :: Int              -- The number of entries
+  , vocabReverse :: [a]              -- The decoded values
+  , hash         :: (HashMap a Int)  -- The integer encoding
+  }
     deriving Show
 
 empty :: Encoding a
@@ -93,14 +94,14 @@ encodeDir :: FilePath -> EncodeState B.ByteString [[Int]]
 encodeDir path = do
   fnames <- liftIO $ do
     names <- listDirectory path
-    filterM doesFileExist $ map (path </>) names
+    filterM doesFileExist . map (path </>) $ sort names
   traverse encodeFile fnames
 
 encodeDirs :: FilePath -> EncodeState B.ByteString [[[Int]]]
 encodeDirs path = do
   dnames <- liftIO $ do
     names <- listDirectory path
-    filterM doesDirectoryExist $ map (path </>) names
+    filterM doesDirectoryExist . map (path </>) $ sort names
   traverse encodeDir dnames
 
 -- path = "/home/chad/git/iu/hakaru/examples/naive_bayes/20_newsgroups"
@@ -116,10 +117,20 @@ removeSingletons xs = map (map $ filter notSingle) $ xs
   where
   notSingle x = IntSet.notMember x singletons
   singletons = IntMap.keysSet . IntMap.filter (== 1) $ counts
-  counts = foldl' f IntMap.empty . concat . concat $ xs
-    where f m x = let  m' = IntMap.insertWith (+) x 1 m
-                       Just v = IntMap.lookup x m'
-                  in v `seq` m'
+  counts = foldl' f IntMap.empty . concat . concat $ ns
+    where
+    -- Two options: Compute singletons as
+    -- 1. Those words occuring once in the entire corpus
+    -- ns = xs
+    --
+    -- ... or
+    -- 2. Those words occuring in only one document
+    ns = map (map uniq) xs
+    uniq = S.toList . S.fromList
+
+    f m x = let m' = IntMap.insertWith (+) x 1 m
+                Just v = IntMap.lookup x m'
+                in v `seq` m'
 
 asArrays :: [[[Int]]] -> (Vector Int, Vector Int, Vector Int)
 asArrays groupList = (wordIndices, docIndices, topicIndices)
@@ -152,7 +163,7 @@ getNews maxDocs topics = do
   let 
     news = asArrays docs2
     enc = compose enc1 enc2
-  return (news, enc)
+  return (news, enc) 
 
 isStopword :: B.ByteString -> Bool
 isStopword b = S.member b stopwords

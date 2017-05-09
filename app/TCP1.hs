@@ -8,12 +8,12 @@ import qualified Data.Vector.Unboxed as V
 import Data.Vector.Unboxed ((!))
 import Text.Printf (printf)
 import NaiveBayes.Model (prog)
-import Control.Monad (forever, replicateM, forM_)
+import Control.Monad (forever, replicateM, forM_, fmap)
 import Data.List (sort)
 import Data.Number.LogFloat
 
 main = do
-  (words, docs, topics) <- getNews (Just 10) [0..]
+  (words, docs, topics) <- fmap fst $ getNews (Just 10) [0..]
   g <- MWC.create
   let 
     zPrior = onesFrom topics

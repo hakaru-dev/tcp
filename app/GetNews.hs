@@ -22,4 +22,4 @@ main = do
   writeVec "docs" docs
   writeVec "topics" topics
   withFile "vocab" WriteMode $ \h -> do
-  	forM_ (vocab enc) $ \x -> B.hPutStrLn h x
+    forM_ (reverse $ vocabReverse enc) $ \x -> B.hPutStrLn h x
