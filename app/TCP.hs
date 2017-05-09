@@ -1,5 +1,6 @@
 module Main where
 
+import System.Environment (getArgs)
 import qualified Data.ByteString.Char8 as B
 import News (getNews)
 import qualified System.Random.MWC as MWC
@@ -13,7 +14,9 @@ import Data.List (sort)
 import Data.Number.LogFloat
 
 main = do
-  (words, docs, topics) <- getNews (Just 10) [0..]
+  args <- getArgs
+  let n = (read (head args)) :: Int
+  (words, docs, topics) <- getNews (Just n) [0..]
   g <- MWC.create
   let 
     zPrior = onesFrom topics
