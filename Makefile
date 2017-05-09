@@ -19,7 +19,7 @@ src/naive_bayes_simp.hk:
 
 src/NaiveBayes.hs: src/naive_bayes_simp.hk
 	# compile src/naive_bayes_simp.hk -o src/NaiveBayes.hs -M NaiveBayes
-	summary --logfloat-prelude src/naive_bayes_simp.hk -o src/NaiveBayes.hs -M NaiveBayes
+	# summary --logfloat-prelude src/naive_bayes_simp.hk -o src/NaiveBayes.hs -M NaiveBayes
 
 build: src/NaiveBayes.hs data
 	stack build
