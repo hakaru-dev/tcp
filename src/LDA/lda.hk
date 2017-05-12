@@ -7,7 +7,7 @@ def dirichlet(as array(prob)):
              x = product j from 0 to i: xs[j]
              x * if i+1==size(as): 1 else: real2prob(1-xs[i])
 
-def naive_bayes( topic_prior array(prob)
+def lda( topic_prior array(prob)
                , word_prior array(prob)
                , z array(nat)
                , w array(nat)
@@ -38,4 +38,4 @@ def naive_bayes( topic_prior array(prob)
 
   else: reject. measure(nat)
 
-naive_bayes
+lda
