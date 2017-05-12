@@ -11,7 +11,7 @@ import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as MV
 import Data.Vector.Unboxed (Vector)
 import           Prelude                          hiding (product)
-import           Language.Hakaru.Runtime.Prelude hiding (unMeasure, Measure)
+import           Language.Hakaru.Runtime.Prelude hiding (iterateM_, unMeasure, Measure)
 import           Language.Hakaru.Runtime.LogFloatPrelude
 import           Language.Hakaru.Types.Sing
 import qualified System.Random.MWC                as MWC
@@ -91,6 +91,19 @@ withGen
   -> Measure x
   -> IO a
 withGen g k m = k =<< sample g m
+
+chain 
+  :: MWC.GenIO  
+  -> a
+  -> (a -> Measure a)
+  -> (a -> IO ())
+  -> IO ()
+chain g a fab fbc = run a
+  where
+  run a = do
+    b <- sample g $ fab a
+    fbc b
+    run b
 
 -- Make an Unbox instance. This really should go in the 'logfloat' package.
 -- derivingUnbox "LogFloat"

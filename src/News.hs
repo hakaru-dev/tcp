@@ -20,6 +20,7 @@ import Control.Monad.Identity (runIdentity)
 import qualified Data.IntMap as IntMap
 import qualified Data.IntSet as IntSet
 import Data.List (foldl', sort)
+import Debug.Trace
 
 -- import Filesystem.Path.Internal.FilePath (FilePath)
 
@@ -77,7 +78,13 @@ encode x = do
       return n
 
 dropHeader :: B.ByteString -> B.ByteString
-dropHeader = B.unlines . dropWhile (/= "") . B.lines
+dropHeader = B.unlines . tr . dropWhile (== "") . dropWhile (/= "") . B.lines
+  where
+  tr = id 
+  -- Some old stuff from debugging
+  -- tr bs = trace (f bs) bs
+  -- f []     = ""
+  -- f (b:bs) = B.unpack b
 
 tokenize :: B.ByteString -> [B.ByteString]
 tokenize = filter (not . isStopword) . B.splitWith (not . isLower) . B.map toLower
@@ -121,12 +128,12 @@ removeSingletons xs = map (map $ filter notSingle) $ xs
     where
     -- Two options: Compute singletons as
     -- 1. Those words occuring once in the entire corpus
-    -- ns = xs
+    ns = xs
     --
     -- ... or
     -- 2. Those words occuring in only one document
-    ns = map (map uniq) xs
-    uniq = S.toList . S.fromList
+    -- ns = map (map uniq) xs
+    -- uniq = S.toList . S.fromList
 
     f m x = let m' = IntMap.insertWith (+) x 1 m
                 Just v = IntMap.lookup x m'

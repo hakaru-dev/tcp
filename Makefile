@@ -23,7 +23,7 @@ src/NaiveBayes/Model.hs: src/NaiveBayes/naive_bayes_simp.hk
 	summary --logfloat-prelude src/NaiveBayes/naive_bayes_simp.hk -o src/NaiveBayes/Model.hs -M NaiveBayes.Model
 
 src/LDA/lda_simp.hk:
-	simplify src/LDA/lda.hk | ./unsample > src/LDA/lda_simp.hk
+	simplify src/LDA/lda.hk > src/LDA/lda_simp.hk
 
 src/LDA/Model.hs: src/LDA/lda_simp.hk
 	# compile src/naive_bayes_simp.hk -o src/LDA.hs -M LDA
