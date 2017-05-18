@@ -10,7 +10,7 @@ import Control.Monad.State.Strict
 import Data.Hashable (Hashable)
 
 import qualified Data.ByteString.Char8 as B
-import Data.Char (toLower, isLower)
+import Data.Char (toLower, isAsciiLower)
 import System.Directory
 import System.FilePath
 
