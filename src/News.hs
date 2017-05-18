@@ -157,20 +157,35 @@ asArrays groupList = (wordIndices, docIndices, topicIndices)
     | otherwise = go (n+1) xs kss
   go _ _ _ = []
 
+-- Factoring out this helper function. Works like getNews, but returns a List (still paired with an encoding)
+getNewsL
+  :: Maybe Int
+  -> [Int]
+  -> IO ([[[Int]]], Encoding B.ByteString)
+getNewsL maxDocs topics = do
+  (docs1, enc1) <- run $ case maxDocs of
+    Nothing -> fmap (!!! topics) $ encodeDirs path
+    Just d  -> fmap (map (take d) . (!!! topics)) $ encodeDirs path
+  (docs2, enc2) <- run . recode $ removeSingletons docs1
+  let enc = compose enc1 enc2
+  return (docs2, enc) 
+
 -- To retrieve everything, 'getNews Nothing [0..]'
 getNews
   :: Maybe Int
   -> [Int]
   -> IO ((Vector Int, Vector Int, Vector Int), Encoding B.ByteString)
 getNews maxDocs topics = do
-  (docs1, enc1) <- run $ case maxDocs of
-    Nothing -> fmap (!!! topics) $ encodeDirs path
-    Just d  -> fmap (map (take d) . (!!! topics)) $ encodeDirs path
-  (docs2, enc2) <- run . recode $ removeSingletons docs1
-  let 
-    news = asArrays docs2
-    enc = compose enc1 enc2
-  return (news, enc) 
+  (docs, enc) <- getNewsL maxDocs topics
+  return (asArrays docs, enc)
+
+-- Build LDA-C format
+ldac :: [[[Int]]] -> Encoding B.ByteString -> B.ByteString
+ldac groups enc = B.unlines $ map (onGroup enc) groups
+  where
+  onGroup enc docs = B.unlines $ map (onDoc enc) docs
+  onDoc enc words  = format $ composeH (hash enc) (table words)
+  format h = B.pack $ show (H.size h) ++ concat [printf " %s:%d" (B.unpack k) v | (k,v) <- H.toList h]
 
 isStopword :: B.ByteString -> Bool
 isStopword b = S.member b stopwords
