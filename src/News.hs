@@ -87,7 +87,7 @@ dropHeader = B.unlines . tr . dropWhile (== "") . dropWhile (/= "") . B.lines
   -- f (b:bs) = B.unpack b
 
 tokenize :: B.ByteString -> [B.ByteString]
-tokenize = filter (not . isStopword) . B.splitWith (not . isLower) . B.map toLower
+tokenize = filter (not . isStopword) . B.splitWith (not . isAsciiLower) . B.map toLower
 
 
 encodeFile :: FilePath -> EncodeState B.ByteString [Int]
