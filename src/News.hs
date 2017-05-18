@@ -57,6 +57,9 @@ compose (Encoding n1 v1 h1) (Encoding n2 v2 h2) = Encoding n v h
   v = filter (flip H.member h) v1
   h = composeH h1 h2
 
+table :: (Eq a, Hashable a) => [a] -> HashMap a Int
+table xs = H.fromListWith (+) [ (x, 1) | x <- xs ]
+
 -------------------------------------------------------------------------------
 
 
