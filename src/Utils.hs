@@ -18,6 +18,7 @@ import qualified System.Random.MWC                as MWC
 import           Control.Monad
 import           Data.Number.LogFloat hiding (product)
 import News (getNews)
+import System.IO
 
 {-
 `prog` imported from NaiveBayes.hs has this type:
@@ -104,6 +105,10 @@ chain g a fab fbc = run a
     b <- sample g $ fab a
     fbc b
     run b
+
+writeVec :: String -> V.Vector Int -> IO ()
+writeVec file v = withFile file WriteMode $ \h -> do
+  V.forM_ v $ \x -> hPrint h x
 
 -- Make an Unbox instance. This really should go in the 'logfloat' package.
 -- derivingUnbox "LogFloat"

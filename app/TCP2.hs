@@ -12,9 +12,11 @@ import qualified Data.Vector.Unboxed.Mutable as MV
 import Text.Printf (printf)
 import LDA.Model (prog)
 import Control.Monad (forever, replicateM, forM_)
-import Data.List (sort)
+import Data.List (sort, intercalate)
 import Data.Number.LogFloat
 import Language.Hakaru.Runtime.LogFloatPrelude
+import System.IO
+import News
 
 
 -- |Step through documents, performing one Gibbs sampling iteration
@@ -30,11 +32,12 @@ gibbsRound
 gibbsRound zPrior wPrior w d nd z = Measure $ \g -> do
   let
     numTokens = V.length z
+    step = prog zPrior wPrior z w d nd
     loop i mz = 
       if i == numTokens then Just <$> V.unsafeFreeze mz
       else do
         z <- V.unsafeFreeze mz
-        maybeTopic <- unMeasure (prog zPrior wPrior z w d nd i) g
+        maybeTopic <- unMeasure (step i) g
         case maybeTopic of
           Nothing -> return Nothing
           Just topic -> do
@@ -59,9 +62,10 @@ gibbsRound zPrior wPrior w d nd z = Measure $ \g -> do
 --   f z = undefined
 
 main = do
-  ((w, d, topics), enc) <- getNews (Just 1) [0..4]
-  g <- MWC.create
+  (news, enc) <- getNewsL SingleDoc (Just 5) [0..]
   let 
+    ldacNews = ldac news
+    (w,d,topics) = asArrays news
     numTopics = 5 :: Int
     zPrior = V.fromList . replicate numTopics $ logFloat 1
     wPrior = onesFrom w
@@ -73,7 +77,19 @@ main = do
   -- printf "length words  == %d\n" (V.length words)
   -- printf "length docs   == %d\n" (V.length docs)
   -- printf "length topics == %d\n" (V.length topics)
-  chain g z0 next print
+
+
+  writeVec "words" w
+  writeVec "docs" d
+  writeVec "topics" topics
+  withFile "vocab" WriteMode $ \h -> do
+    forM_ (reverse $ vocabReverse enc) $ \x -> B.hPutStrLn h x
+  withFile "ldac" WriteMode $ \h -> do
+    B.hPutStrLn h ldacNews
+  hSetBuffering stdout LineBuffering
+  g <- MWC.create
+  chain g z0 next $ \zs -> do
+    putStrLn . intercalate "," . map show . V.toList $ zs
   ---forM_ [0..(V.length topics - 1)] $ \i -> do
     --print $ V.map logFromLogFloat $ predict i
   --  printf "%d, %d\n" (topics ! i) (V.maxIndex $ predict i)

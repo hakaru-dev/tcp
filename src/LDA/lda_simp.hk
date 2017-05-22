@@ -10,12 +10,15 @@ fn topic_prior array(prob):
           weight(((product d from 0 to size(topic_prior): 
                     (product i丛 from 0 to size(word_prior): 
                       (product j from 0 to (summate d両 from 0 to size(w): 
-                                             (match ((d == z[d両]) && (i丛 == w[d両])): 
-                                               true: 1
-                                               false: 0)): 
+                                             (match (d両 == wordUpdate): 
+                                               true: 0
+                                               false: 
+                                                (match ((d == z[d両]) && (i丛 == w[d両])): 
+                                                  true: 1
+                                                  false: 0))): 
                         (nat2prob(j) + word_prior[i丛]))))
                    * 
-                  (product d from 0 to size(w): 
+                  (product d from 0 to numDocs: 
                     (product i丯 from 0 to size(topic_prior): 
                       (product j from 0 to (summate d両 from 0 to size(w): 
                                              (match (d両 == wordUpdate): 
@@ -26,7 +29,7 @@ fn topic_prior array(prob):
                                                   false: 0))): 
                         (nat2prob(j) + topic_prior[i丯]))))
                    / 
-                  (product d from 0 to size(w): 
+                  (product d from 0 to numDocs: 
                     (product i丯 from 0 to (summate d両 from 0 to size(w): 
                                             (match (d両 == wordUpdate): 
                                               true: 0
@@ -40,17 +43,38 @@ fn topic_prior array(prob):
                    / 
                   (product d from 0 to size(topic_prior): 
                     (product i丛 from 0 to (summate d両 from 0 to size(w): 
-                                            (match (not((w[d両] < 0)) && (d == z[d両])): 
-                                              true: 1
-                                              false: 0)): 
+                                            (match (d両 == wordUpdate): 
+                                              true: 0
+                                              false: 
+                                               (match (not((w[d両] < 0)) && (d == z[d両])): 
+                                                 true: 1
+                                                 false: 0))): 
                       (nat2prob(i丛)
                         + 
                        (summate d両 from 0 to size(word_prior): word_prior[d両]))))),
                  categorical(array zNew丑 of size(topic_prior): 
-                              ((product d from 0 to size(w): 
+                              ((product d from 0 to size(word_prior): 
+                                 (match ((d == w[wordUpdate]) && 
+                                         not((w[wordUpdate] < 0)) && 
+                                         not(((nat2int(size(word_prior)) - 1)
+                                               < 
+                                              nat2int(w[wordUpdate])))): 
+                                   true: 
+                                    (nat2prob((summate d両 from 0 to size(w): 
+                                                (match (d両 == wordUpdate): 
+                                                  true: 0
+                                                  false: 
+                                                   (match ((zNew丑 == z[d両]) && (d == w[d両])): 
+                                                     true: 1
+                                                     false: 0))))
+                                      + 
+                                     word_prior[d])
+                                   false: 1))
+                                * 
+                               (product d from 0 to numDocs: 
                                  (match ((d == doc[wordUpdate]) && 
                                          not((doc[wordUpdate] < 0)) && 
-                                         not(((nat2int(size(w)) - 1) < nat2int(doc[wordUpdate])))): 
+                                         not(((nat2int(numDocs) - 1) < nat2int(doc[wordUpdate])))): 
                                    true: 
                                     (nat2prob((summate d両 from 0 to size(w): 
                                                 (match (d両 == wordUpdate): 
@@ -63,8 +87,8 @@ fn topic_prior array(prob):
                                      topic_prior[zNew丑])
                                    false: 1))
                                 / 
-                               (product d from 0 to size(w): 
-                                 (match (not(((nat2int(size(w)) - 1)
+                               (product d from 0 to numDocs: 
+                                 (match (not(((nat2int(numDocs) - 1)
                                                < 
                                               nat2int(doc[wordUpdate]))) && 
                                          not((doc[wordUpdate] < 0)) && 
@@ -79,5 +103,18 @@ fn topic_prior array(prob):
                                                      false: 0))))
                                       + 
                                      (summate d両 from 0 to size(topic_prior): topic_prior[d両]))
-                                   false: 1)))))
+                                   false: 1))
+                                / 
+                               (match not((w[wordUpdate] < 0)): 
+                                 true: 
+                                  (nat2prob((summate d両 from 0 to size(w): 
+                                              (match (d両 == wordUpdate): 
+                                                true: 0
+                                                false: 
+                                                 (match (not((w[d両] < 0)) && (zNew丑 == z[d両])): 
+                                                   true: 1
+                                                   false: 0))))
+                                    + 
+                                   (summate d両 from 0 to size(word_prior): word_prior[d両]))
+                                 false: 1))))
          false: reject. measure(nat))

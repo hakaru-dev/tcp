@@ -21,6 +21,7 @@ import qualified Data.IntMap as IntMap
 import qualified Data.IntSet as IntSet
 import Data.List (foldl', sort)
 import Debug.Trace
+import Text.Printf (printf)
 
 -- import Filesystem.Path.Internal.FilePath (FilePath)
 
@@ -122,21 +123,25 @@ recode :: (Hashable a, Eq a) =>
   [[[a]]] -> EncodeState a [[[Int]]]
 recode = traverse . traverse . traverse $ encode
 
-removeSingletons :: [[[Int]]] -> [[[Int]]]
-removeSingletons xs = map (map $ filter notSingle) $ xs
+-- We'd like to be able to remove "singleton" words.
+-- There are (at least) two ways to do this.
+-- Initially, we might want to only remove those words with only one occurence (token) in the corpus.
+-- However, may words occur several times, but only within a single document. 
+-- These contribute to computational cost, but serve no statistical benefit in models like LDA. 
+-- The 'SingletonType' type provides a way of makeing this specification.
+data SingletonType = SingleDoc | SingleToken
+
+removeSingletons :: SingletonType -> [[[Int]]] -> [[[Int]]]
+removeSingletons s xs = map (map $ filter notSingle) $ xs
   where
   notSingle x = IntSet.notMember x singletons
   singletons = IntMap.keysSet . IntMap.filter (== 1) $ counts
   counts = foldl' f IntMap.empty . concat . concat $ ns
     where
-    -- Two options: Compute singletons as
-    -- 1. Those words occuring once in the entire corpus
-    ns = xs
-    --
-    -- ... or
-    -- 2. Those words occuring in only one document
-    -- ns = map (map uniq) xs
-    -- uniq = S.toList . S.fromList
+    ns = case s of 
+      SingleDoc   -> map (map uniq) xs 
+      SingleToken -> xs
+    uniq = S.toList . S.fromList
 
     f m x = let m' = IntMap.insertWith (+) x 1 m
                 Just v = IntMap.lookup x m'
@@ -162,33 +167,41 @@ asArrays groupList = (wordIndices, docIndices, topicIndices)
 
 -- Factoring out this helper function. Works like getNews, but returns a List (still paired with an encoding)
 getNewsL
-  :: Maybe Int
+  :: SingletonType
+  -> Maybe Int
   -> [Int]
   -> IO ([[[Int]]], Encoding B.ByteString)
-getNewsL maxDocs topics = do
+getNewsL s maxDocs topics = do
   (docs1, enc1) <- run $ case maxDocs of
     Nothing -> fmap (!!! topics) $ encodeDirs path
     Just d  -> fmap (map (take d) . (!!! topics)) $ encodeDirs path
-  (docs2, enc2) <- run . recode $ removeSingletons docs1
+  (docs2, enc2) <- run . recode $ removeSingletons s docs1
   let enc = compose enc1 enc2
   return (docs2, enc) 
 
 -- To retrieve everything, 'getNews Nothing [0..]'
 getNews
-  :: Maybe Int
+  :: SingletonType
+  -> Maybe Int
   -> [Int]
   -> IO ((Vector Int, Vector Int, Vector Int), Encoding B.ByteString)
-getNews maxDocs topics = do
-  (docs, enc) <- getNewsL maxDocs topics
+getNews s maxDocs topics = do
+  (docs, enc) <- getNewsL SingleDoc maxDocs topics
   return (asArrays docs, enc)
 
 -- Build LDA-C format
-ldac :: [[[Int]]] -> Encoding B.ByteString -> B.ByteString
-ldac groups enc = B.unlines $ map (onGroup enc) groups
+--ldac :: [[[Int]]] -> Encoding B.ByteString -> B.ByteString
+--ldac groups enc = B.unlines $ map (onGroup enc) groups
+--  where
+--  onGroup enc docs = B.intercalate "\n" $ map (onDoc enc) docs
+--  onDoc enc words  = format $ composeH (hash enc) (table words)
+--  format h = B.pack $ show (H.size h) ++ concat [printf " %s:%d" (B.unpack k) v | (k,v) <- H.toList h]
+ldac :: [[[Int]]] -> B.ByteString
+ldac groups = B.intercalate "\n" $ map onGroup groups
   where
-  onGroup enc docs = B.unlines $ map (onDoc enc) docs
-  onDoc enc words  = format $ composeH (hash enc) (table words)
-  format h = B.pack $ show (H.size h) ++ concat [printf " %s:%d" (B.unpack k) v | (k,v) <- H.toList h]
+  onGroup docs = B.intercalate "\n" $ map onDoc docs
+  onDoc words  = format $ table words
+  format h = B.pack $ show (H.size h) ++ concat [printf " %d:%d" k v | (k,v) <- H.toList h]
 
 isStopword :: B.ByteString -> Bool
 isStopword b = S.member b stopwords

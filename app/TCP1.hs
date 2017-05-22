@@ -1,7 +1,7 @@
 module Main where
 
 import qualified Data.ByteString.Char8 as B
-import News (getNews)
+import News
 import qualified System.Random.MWC as MWC
 import Utils
 import qualified Data.Vector.Unboxed as V
@@ -13,7 +13,7 @@ import Data.List (sort)
 import Data.Number.LogFloat
 
 main = do
-  (words, docs, topics) <- fmap fst $ getNews (Just 10) [0..]
+  (words, docs, topics) <- fmap fst $ getNews SingleDoc (Just 10) [0..]
   g <- MWC.create
   let 
     zPrior = onesFrom topics
