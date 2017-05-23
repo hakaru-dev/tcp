@@ -24,24 +24,24 @@ import News
 gibbsRound 
      :: Vector LogFloat        -- prior probability of each topic
      -> Vector LogFloat        -- prior probability of each word
+     -> Int                  -- number of documents
      -> Vector Int           -- words, indexed by token position
      -> Vector Int           -- document, indexed by token position
-     -> Int                  -- number of documents
      -> Vector Int           -- topics, indexed by document 
      -> Measure (Vector Int) -- distribution over the updated topic
-gibbsRound zPrior wPrior w d nd z = Measure $ \g -> do
+gibbsRound zPrior wPrior nd w d z = Measure $ \g -> do
   let
     numTokens = V.length z
-    step = prog zPrior wPrior z w d nd
     loop i mz = 
       if i == numTokens then Just <$> V.unsafeFreeze mz
       else do
         z <- V.unsafeFreeze mz
-        maybeTopic <- unMeasure (step i) g
+        maybeTopic <- unMeasure (prog zPrior wPrior nd w d z i) g
         case maybeTopic of
           Nothing -> return Nothing
           Just topic -> do
             mz' <- V.unsafeThaw z
+            printf "%d\t%d\n" i topic
             MV.write mz' i topic
             loop (i + 1) mz'
   loop 0 =<< V.thaw z
@@ -71,7 +71,7 @@ main = do
     wPrior = onesFrom w
     numDocs = 1 + V.maximum d
     z0 = V.fromList . take (V.length w) $ cycle [1..numTopics]
-    next = gibbsRound zPrior wPrior w d numDocs
+    next = gibbsRound zPrior wPrior numDocs w d
   -- printf "length zPrior == %d\n" (V.length zPrior)
   -- printf "length wPrior == %d\n" (V.length wPrior)
   -- printf "length words  == %d\n" (V.length words)

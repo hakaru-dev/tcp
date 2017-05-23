@@ -1,9 +1,9 @@
 fn topic_prior array(prob): 
  fn word_prior array(prob): 
-  fn z array(nat): 
+  fn numDocs nat: 
    fn w array(nat): 
     fn doc array(nat): 
-     fn numDocs nat: 
+     fn z array(nat): 
       fn wordUpdate nat: 
        (match (wordUpdate < size(w)): 
          true: 

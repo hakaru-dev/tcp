@@ -9,10 +9,10 @@ def dirichlet(as array(prob)):
 
 def lda( topic_prior array(prob)
                , word_prior array(prob)
-               , z array(nat)
+               , numDocs nat
                , w array(nat)
                , doc array(nat)
-               , numDocs nat
+               , z array(nat)
                , wordUpdate nat ):
   numWords = size(w)
   numTopics = size(topic_prior)
