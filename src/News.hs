@@ -167,11 +167,12 @@ asArrays groupList = (wordIndices, docIndices, topicIndices)
 
 -- Factoring out this helper function. Works like getNews, but returns a List (still paired with an encoding)
 getNewsL
-  :: SingletonType
+  :: FilePath 
+  -> SingletonType
   -> Maybe Int
   -> [Int]
   -> IO ([[[Int]]], Encoding B.ByteString)
-getNewsL s maxDocs topics = do
+getNewsL path s maxDocs topics = do
   (docs1, enc1) <- run $ case maxDocs of
     Nothing -> fmap (!!! topics) $ encodeDirs path
     Just d  -> fmap (map (take d) . (!!! topics)) $ encodeDirs path
@@ -186,7 +187,7 @@ getNews
   -> [Int]
   -> IO ((Vector Int, Vector Int, Vector Int), Encoding B.ByteString)
 getNews s maxDocs topics = do
-  (docs, enc) <- getNewsL SingleDoc maxDocs topics
+  (docs, enc) <- getNewsL path SingleDoc maxDocs topics
   return (asArrays docs, enc)
 
 -- Build LDA-C format

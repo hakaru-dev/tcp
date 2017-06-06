@@ -1,50 +1,52 @@
 module Main where
 
 import qualified Data.ByteString.Char8 as B
-import News (getNews)
 import qualified System.Random.MWC as MWC
 import Utils
 import qualified Data.Vector.Unboxed as V
-import qualified Data.Vector
 import Data.Vector.Unboxed (Vector)
 -- import Data.Vector.Unboxed ((!))
 import qualified Data.Vector.Unboxed.Mutable as MV
 import Text.Printf (printf)
 import LDA.Model (prog)
-import Control.Monad (forever, replicateM, forM_)
+import Control.Monad (forM_)
 import Data.List (sort, intercalate)
 import Data.Number.LogFloat
 import Language.Hakaru.Runtime.LogFloatPrelude
 import System.IO
 import News
+import Debug.Trace
 
 
 -- |Step through documents, performing one Gibbs sampling iteration
 -- on each to select a new topic. 
 gibbsRound 
-     :: Vector LogFloat        -- prior probability of each topic
-     -> Vector LogFloat        -- prior probability of each word
-     -> Int                  -- number of documents
-     -> Vector Int           -- words, indexed by token position
-     -> Vector Int           -- document, indexed by token position
-     -> Vector Int           -- topics, indexed by document 
-     -> Measure (Vector Int) -- distribution over the updated topic
+  :: Vector LogFloat      -- prior probability of each topic
+  -> Vector LogFloat      -- prior probability of each word
+  -> Int                  -- number of documents
+  -> Vector Int           -- words, indexed by token position
+  -> Vector Int           -- document, indexed by token position
+  -> Vector Int           -- topics, indexed by document 
+  -> Measure (Vector Int) -- distribution over the updated topic
 gibbsRound zPrior wPrior nd w d z = Measure $ \g -> do
-  let
-    numTokens = V.length z
-    loop i mz = 
-      if i == numTokens then Just <$> V.unsafeFreeze mz
-      else do
-        z <- V.unsafeFreeze mz
-        maybeTopic <- unMeasure (prog zPrior wPrior nd w d z i) g
-        case maybeTopic of
-          Nothing -> return Nothing
-          Just topic -> do
-            mz' <- V.unsafeThaw z
-            printf "%d\t%d\n" i topic
-            MV.write mz' i topic
-            loop (i + 1) mz'
-  loop 0 =<< V.thaw z
+  -- withFile "z" AppendMode $ \zHandle -> do
+    let
+      numTokens = V.length z
+      loop i mz = 
+        if i == numTokens then do
+          Just <$> V.unsafeFreeze mz
+        else do
+          z <- V.unsafeFreeze mz        
+          -- V.forM_ z $ \x -> hPutStr zHandle (show x)
+          -- hPutStrLn zHandle ""
+          maybeTopic <- unMeasure (prog zPrior wPrior nd w d z i) g
+          case maybeTopic of
+            Nothing -> return Nothing
+            Just topic -> do
+              mz' <- V.unsafeThaw z
+              MV.write mz' i topic
+              loop (i + 1) mz'
+    loop 0 =<< V.thaw z
 
 -- -- |Wrap 'gibbsRound' for simple testing
 -- next :: Vector Int -> Measure (Vector Int)
@@ -61,24 +63,25 @@ gibbsRound zPrior wPrior nd w d z = Measure $ \g -> do
 --   where
 --   f z = undefined
 
+main :: IO ()
 main = do
-  (news, enc) <- getNewsL SingleDoc (Just 5) [0..]
+  (news, enc) <- getNewsL "tiny-corpus/" SingleDoc (Nothing) [0..]
+  -- print news
   let 
     ldacNews = ldac news
     (w,d,topics) = asArrays news
-    numTopics = 5 :: Int
+    numTopics = 2 :: Int
     zPrior = V.fromList . replicate numTopics $ logFloat 1
     wPrior = onesFrom w
     numDocs = 1 + V.maximum d
-    z0 = V.fromList . take (V.length w) $ cycle [1..numTopics]
+    z0 = V.fromList . take (V.length w) $ cycle [0..(numTopics-1)]
     next = gibbsRound zPrior wPrior numDocs w d
   -- printf "length zPrior == %d\n" (V.length zPrior)
   -- printf "length wPrior == %d\n" (V.length wPrior)
   -- printf "length words  == %d\n" (V.length words)
   -- printf "length docs   == %d\n" (V.length docs)
   -- printf "length topics == %d\n" (V.length topics)
-
-
+  
   writeVec "words" w
   writeVec "docs" d
   writeVec "topics" topics
@@ -88,7 +91,9 @@ main = do
     B.hPutStrLn h ldacNews
   hSetBuffering stdout LineBuffering
   g <- MWC.create
-  chain g z0 next $ \zs -> do
+  -- z0 <- fmap (V.fromList) . replicateM (V.length w) $ MWC.uniformR (0,numTopics-1) g
+  putStrLn . intercalate "," . map show . V.toList $ z0
+  chain g z0 (\z -> next z0) $ \zs -> do
     putStrLn . intercalate "," . map show . V.toList $ zs
   ---forM_ [0..(V.length topics - 1)] $ \i -> do
     --print $ V.map logFromLogFloat $ predict i
