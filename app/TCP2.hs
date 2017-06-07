@@ -34,18 +34,15 @@ gibbsRound zPrior wPrior nd w d z = Measure $ \g -> do
       numTokens = V.length z
       loop i mz = 
         if i == numTokens then do
-          Just <$> V.unsafeFreeze mz
+          Just <$> V.freeze mz
         else do
-          z <- V.unsafeFreeze mz        
+          z <- V.freeze mz        
           -- V.forM_ z $ \x -> hPutStr zHandle (show x)
           -- hPutStrLn zHandle ""
-          maybeTopic <- unMeasure (prog zPrior wPrior nd w d z i) g
-          case maybeTopic of
-            Nothing -> return Nothing
-            Just topic -> do
-              mz' <- V.unsafeThaw z
-              MV.write mz' i topic
-              loop (i + 1) mz'
+          topic <- sample g $ prog zPrior wPrior nd w d z i
+          mz' <- V.thaw z
+          MV.write mz' i topic
+          loop (i + 1) mz'
     loop 0 =<< V.thaw z
 
 -- -- |Wrap 'gibbsRound' for simple testing
