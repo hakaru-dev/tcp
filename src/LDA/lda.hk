@@ -24,18 +24,13 @@ def lda( topic_prior array(prob)
     phi <~ plate k of numTopics:
       dirichlet(word_prior) # word dist for topic k
 
-    # zNew <~ categorical(array i of numTopics: 1)
-    zNew <~ categorical(theta[doc[wordUpdate]])
-    _ <~ observe categorical(phi[zNew]) w[wordUpdate]
+    zNew <~ categorical(array i of numTopics: 1)
 
-    _ <~ plate n of numWords:
-      _ <~ 
-        if n == wordUpdate: 
-          return 0
-        else: 
-          _ <~ observe categorical(theta[doc[n]]) z[n]
-          _ <~ observe categorical(phi[z[n]]) w[n]
-          return 0
+    foo <~ plate n of numWords:
+      zz = if n == wordUpdate: zNew else: z[n]
+      bar <~ observe categorical(theta[doc[n]]) zz
+      observe categorical(phi[zz]) w[n]
+
     return zNew
 
   else: reject. measure(nat)
