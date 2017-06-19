@@ -20,7 +20,9 @@ prog =
   lam $ \ doc4 ->
   lam $ \ z5 ->
   lam $ \ wordUpdate6 ->
-  case_ (wordUpdate6 < size w3)
+  case_ (wordUpdate6 < size w3 &&
+         doc4 ! wordUpdate6 < numDocs2 &&
+         w3 ! wordUpdate6 < size word_prior1)
         [branch ptrue
                 ((pose (product (nat_ 0)
                                 (size topic_prior0)
@@ -135,149 +137,97 @@ prog =
                                                          (\ dB40 -> word_prior1 ! dB40))))) $
                        (categorical (array (size topic_prior0) $
                                            \ zNewh41 ->
-                                           product (nat_ 0)
-                                                   (size word_prior1)
-                                                   (\ d42 ->
-                                                    case_ (d42 == w3 ! wordUpdate6 &&
-                                                           not (nat2int (size word_prior1) + int_ -1
-                                                                < nat2int (w3 ! wordUpdate6)))
-                                                          [branch ptrue
-                                                                  (nat2prob (let_ (bucket (nat_ 0)
-                                                                                          (size w3)
-                                                                                          ((r_split (\ (dB44,()) ->
-                                                                                                     dB44
-                                                                                                     == wordUpdate6)
-                                                                                                    r_nop
-                                                                                                    (r_index (\ () ->
-                                                                                                              size word_prior1)
-                                                                                                             (\ (dB44,()) ->
-                                                                                                              w3
-                                                                                                              ! dB44)
-                                                                                                             (r_index (\ (d45,()) ->
-                                                                                                                       size topic_prior0)
-                                                                                                                      (\ (dB44,(d45,())) ->
-                                                                                                                       z5
-                                                                                                                       ! dB44)
-                                                                                                                      (r_add (\ (dB44,(zNewh46,(d45,()))) ->
-                                                                                                                              nat_ 1))))))) $ \ summary43 ->
-                                                                             case_ summary43
-                                                                                   [branch (ppair PVar
-                                                                                                  PVar)
-                                                                                           (\ y47
-                                                                                              z48 ->
-                                                                                            z48)]
-                                                                             ! d42
-                                                                             ! zNewh41) +
-                                                                   word_prior1 ! d42),
-                                                           branch pfalse
-                                                                  (nat2prob (case_ (not (d42
-                                                                                         == w3
-                                                                                            ! wordUpdate6))
-                                                                                   [branch ptrue
-                                                                                           (nat_ 1),
-                                                                                    branch pfalse
-                                                                                           (nat_ 1)]))]) *
-                                           product (nat_ 0)
-                                                   numDocs2
-                                                   (\ d49 ->
-                                                    case_ (d49 == doc4 ! wordUpdate6 &&
-                                                           not (nat2int numDocs2 + int_ -1
-                                                                < nat2int (doc4 ! wordUpdate6)))
-                                                          [branch ptrue
-                                                                  (nat2prob (let_ (bucket (nat_ 0)
-                                                                                          (size w3)
-                                                                                          ((r_split (\ (dB51,()) ->
-                                                                                                     dB51
-                                                                                                     == wordUpdate6)
-                                                                                                    r_nop
-                                                                                                    (r_index (\ () ->
-                                                                                                              numDocs2)
-                                                                                                             (\ (dB51,()) ->
-                                                                                                              doc4
-                                                                                                              ! dB51)
-                                                                                                             (r_index (\ (d52,()) ->
-                                                                                                                       size topic_prior0)
-                                                                                                                      (\ (dB51,(d52,())) ->
-                                                                                                                       z5
-                                                                                                                       ! dB51)
-                                                                                                                      (r_add (\ (dB51,(zNewh53,(d52,()))) ->
-                                                                                                                              nat_ 1))))))) $ \ summary50 ->
-                                                                             case_ summary50
-                                                                                   [branch (ppair PVar
-                                                                                                  PVar)
-                                                                                           (\ y54
-                                                                                              z55 ->
-                                                                                            z55)]
-                                                                             ! d49
-                                                                             ! zNewh41) +
-                                                                   topic_prior0 ! zNewh41),
-                                                           branch pfalse
-                                                                  (nat2prob (case_ (not (d49
-                                                                                         == doc4
-                                                                                            ! wordUpdate6))
-                                                                                   [branch ptrue
-                                                                                           (nat_ 1),
-                                                                                    branch pfalse
-                                                                                           (nat_ 1)]))]) *
-                                           recip (product (nat_ 0)
-                                                          numDocs2
-                                                          (\ d56 ->
-                                                           case_ (d56 == doc4 ! wordUpdate6 &&
-                                                                  not (nat2int numDocs2 + int_ -1
-                                                                       < nat2int (doc4
-                                                                                  ! wordUpdate6)))
-                                                                 [branch ptrue
-                                                                         (nat2prob (let_ (bucket (nat_ 0)
-                                                                                                 (size w3)
-                                                                                                 ((r_split (\ (dB58,()) ->
-                                                                                                            dB58
-                                                                                                            == wordUpdate6)
-                                                                                                           r_nop
-                                                                                                           (r_index (\ () ->
-                                                                                                                     numDocs2)
-                                                                                                                    (\ (dB58,()) ->
-                                                                                                                     doc4
-                                                                                                                     ! dB58)
-                                                                                                                    (r_add (\ (dB58,(d59,())) ->
-                                                                                                                            nat_ 1)))))) $ \ summary57 ->
-                                                                                    case_ summary57
-                                                                                          [branch (ppair PVar
-                                                                                                         PVar)
-                                                                                                  (\ y60
-                                                                                                     z61 ->
-                                                                                                   z61)]
-                                                                                    ! d56) +
-                                                                          summate (nat_ 0)
-                                                                                  (size topic_prior0)
-                                                                                  (\ dB62 ->
-                                                                                   topic_prior0
-                                                                                   ! dB62)),
-                                                                  branch pfalse
-                                                                         (nat2prob (case_ (not (d56
-                                                                                                == doc4
-                                                                                                   ! wordUpdate6))
+                                           ((let_ (bucket (nat_ 0)
+                                                          (size w3)
+                                                          ((r_split (\ (dB43,()) ->
+                                                                     dB43
+                                                                     == wordUpdate6)
+                                                                    r_nop
+                                                                    (r_index (\ () ->
+                                                                              size topic_prior0)
+                                                                             (\ (dB43,()) ->
+                                                                              z5
+                                                                              ! dB43)
+                                                                             (r_split (\ (dB43,(zNewh44,())) ->
+                                                                                       w3
+                                                                                       ! wordUpdate6
+                                                                                       == w3 ! dB43)
+                                                                                      (r_add (\ (dB43,(zNewh44,())) ->
+                                                                                              nat_ 1))
+                                                                                      r_nop))))) $ \ summary42 ->
+                                             case_ (case_ summary42
+                                                          [branch (ppair PVar PVar)
+                                                                  (\ y45 z46 -> z46)]
+                                                    ! zNewh41)
+                                                   [branch (ppair PVar PVar)
+                                                           (\ y47 z48 -> nat2prob y47)]) +
+                                            word_prior1 ! (w3 ! wordUpdate6)) *
+                                           ((let_ (bucket (nat_ 0)
+                                                          (size w3)
+                                                          ((r_split (\ (dB50,()) ->
+                                                                     dB50
+                                                                     == wordUpdate6)
+                                                                    r_nop
+                                                                    (r_index (\ () ->
+                                                                              size topic_prior0)
+                                                                             (\ (dB50,()) ->
+                                                                              z5
+                                                                              ! dB50)
+                                                                             (r_split (\ (dB50,(zNewh51,())) ->
+                                                                                       doc4
+                                                                                       ! wordUpdate6
+                                                                                       == doc4
+                                                                                          ! dB50)
+                                                                                      (r_add (\ (dB50,(zNewh51,())) ->
+                                                                                              nat_ 1))
+                                                                                      r_nop))))) $ \ summary49 ->
+                                             case_ (case_ summary49
+                                                          [branch (ppair PVar PVar)
+                                                                  (\ y52 z53 -> z53)]
+                                                    ! zNewh41)
+                                                   [branch (ppair PVar PVar)
+                                                           (\ y54 z55 -> nat2prob y54)]) +
+                                            topic_prior0 ! zNewh41) *
+                                           recip (nat2prob (summate (nat_ 0)
+                                                                    (size w3)
+                                                                    (\ dB56 ->
+                                                                     case_ (dB56 == wordUpdate6)
+                                                                           [branch ptrue (nat_ 0),
+                                                                            branch pfalse
+                                                                                   (case_ (doc4
+                                                                                           ! wordUpdate6
+                                                                                           == doc4
+                                                                                              ! dB56)
                                                                                           [branch ptrue
                                                                                                   (nat_ 1),
                                                                                            branch pfalse
-                                                                                                  (nat_ 1)]))])) *
+                                                                                                  (nat_ 0)])])) +
+                                                  summate (nat_ 0)
+                                                          (size topic_prior0)
+                                                          (\ dB57 -> topic_prior0 ! dB57)) *
                                            recip (nat2prob (let_ (bucket (nat_ 0)
                                                                          (size w3)
-                                                                         ((r_split (\ (dB64,()) ->
-                                                                                    dB64
+                                                                         ((r_split (\ (dB59,()) ->
+                                                                                    dB59
                                                                                     == wordUpdate6)
                                                                                    r_nop
                                                                                    (r_index (\ () ->
                                                                                              size topic_prior0)
-                                                                                            (\ (dB64,()) ->
+                                                                                            (\ (dB59,()) ->
                                                                                              z5
-                                                                                             ! dB64)
-                                                                                            (r_add (\ (dB64,(zNewh65,())) ->
-                                                                                                    nat_ 1)))))) $ \ summary63 ->
-                                                            case_ summary63
+                                                                                             ! dB59)
+                                                                                            (r_add (\ (dB59,(zNewh60,())) ->
+                                                                                                    nat_ 1)))))) $ \ summary58 ->
+                                                            case_ summary58
                                                                   [branch (ppair PVar PVar)
-                                                                          (\ y66 z67 -> z67)]
+                                                                          (\ y61 z62 -> z62)]
                                                             ! zNewh41) +
                                                   summate (nat_ 0)
                                                           (size word_prior1)
-                                                          (\ dB68 -> word_prior1 ! dB68)))))),
-         branch pfalse (reject)]
+                                                          (\ dB63 -> word_prior1 ! dB63)))))),
+         branch pfalse
+                (case_ (not (wordUpdate6 < size w3))
+                       [branch ptrue (reject),
+                        branch pfalse
+                               (case_ (not (doc4 ! wordUpdate6 < numDocs2))
+                                      [branch ptrue (reject), branch pfalse (reject)])])]

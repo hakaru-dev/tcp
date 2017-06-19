@@ -5,7 +5,9 @@ fn topic_prior array(prob):
     fn doc array(nat): 
      fn z array(nat): 
       fn wordUpdate nat: 
-       (match (wordUpdate < size(w)): 
+       (match ((wordUpdate < size(w)) && 
+               (doc[wordUpdate] < numDocs) && 
+               (w[wordUpdate] < size(word_prior))): 
          true: 
           weight(((product d from 0 to size(topic_prior): 
                     (product it from 0 to size(word_prior): 
@@ -53,54 +55,37 @@ fn topic_prior array(prob):
                         + 
                        (summate dB from 0 to size(word_prior): word_prior[dB]))))),
                  categorical(array zNewh of size(topic_prior): 
-                              ((product d from 0 to size(word_prior): 
-                                 (match ((d == w[wordUpdate]) && 
-                                         not(((nat2int(size(word_prior)) - 1)
-                                               < 
-                                              nat2int(w[wordUpdate])))): 
-                                   true: 
-                                    (nat2prob((summate dB from 0 to size(w): 
-                                                (match (dB == wordUpdate): 
-                                                  true: 0
-                                                  false: 
-                                                   (match ((zNewh == z[dB]) && (d == w[dB])): 
-                                                     true: 1
-                                                     false: 0))))
-                                      + 
-                                     word_prior[d])
-                                   false: 1))
+                              ((nat2prob((summate dB from 0 to size(w): 
+                                           (match (dB == wordUpdate): 
+                                             true: 0
+                                             false: 
+                                              (match ((zNewh == z[dB]) && 
+                                                      (w[wordUpdate] == w[dB])): 
+                                                true: 1
+                                                false: 0))))
+                                 + 
+                                word_prior[w[wordUpdate]])
                                 * 
-                               (product d from 0 to numDocs: 
-                                 (match ((d == doc[wordUpdate]) && 
-                                         not(((nat2int(numDocs) - 1) < nat2int(doc[wordUpdate])))): 
-                                   true: 
-                                    (nat2prob((summate dB from 0 to size(w): 
-                                                (match (dB == wordUpdate): 
-                                                  true: 0
-                                                  false: 
-                                                   (match ((d == doc[dB]) && (zNewh == z[dB])): 
-                                                     true: 1
-                                                     false: 0))))
-                                      + 
-                                     topic_prior[zNewh])
-                                   false: 1))
+                               (nat2prob((summate dB from 0 to size(w): 
+                                           (match (dB == wordUpdate): 
+                                             true: 0
+                                             false: 
+                                              (match ((doc[wordUpdate] == doc[dB]) && 
+                                                      (zNewh == z[dB])): 
+                                                true: 1
+                                                false: 0))))
+                                 + 
+                                topic_prior[zNewh])
                                 / 
-                               (product d from 0 to numDocs: 
-                                 (match (not(((nat2int(numDocs) - 1)
-                                               < 
-                                              nat2int(doc[wordUpdate]))) && 
-                                         (d == doc[wordUpdate])): 
-                                   true: 
-                                    (nat2prob((summate dB from 0 to size(w): 
-                                                (match (dB == wordUpdate): 
-                                                  true: 0
-                                                  false: 
-                                                   (match (d == doc[dB]): 
-                                                     true: 1
-                                                     false: 0))))
-                                      + 
-                                     (summate dB from 0 to size(topic_prior): topic_prior[dB]))
-                                   false: 1))
+                               (nat2prob((summate dB from 0 to size(w): 
+                                           (match (dB == wordUpdate): 
+                                             true: 0
+                                             false: 
+                                              (match (doc[wordUpdate] == doc[dB]): 
+                                                true: 1
+                                                false: 0))))
+                                 + 
+                                (summate dB from 0 to size(topic_prior): topic_prior[dB]))
                                 / 
                                (nat2prob((summate dB from 0 to size(w): 
                                            (match (dB == wordUpdate): 
