@@ -34,13 +34,13 @@ gibbsRound zPrior wPrior nd w d z = Measure $ \g -> do
       numTokens = V.length z
       loop i mz = 
         if i == numTokens then do
-          Just <$> V.freeze mz
+          Just <$> V.unsafeFreeze mz
         else do
-          z <- V.freeze mz        
+          z <- V.unsafeFreeze mz        
           -- V.forM_ z $ \x -> hPutStr zHandle (show x)
           -- hPutStrLn zHandle ""
           topic <- sample g $ prog zPrior wPrior nd w d z i
-          mz' <- V.thaw z
+          mz' <- V.unsafeThaw z
           MV.write mz' i topic
           loop (i + 1) mz'
     loop 0 =<< V.thaw z
@@ -62,12 +62,14 @@ gibbsRound zPrior wPrior nd w d z = Measure $ \g -> do
 
 main :: IO ()
 main = do
-  (news, enc) <- getNewsL "tiny-corpus/" SingleDoc (Nothing) [0..]
+  let corpus = "20_newsgroups"
+  (news, enc) <- getNewsL corpus SingleDoc (Just 10) [1,7]
   -- print news
   let 
     ldacNews = ldac news
     (w,d,topics) = asArrays news
-    numTopics = 2 :: Int
+    numWords = V.length w
+    numTopics = 10 :: Int
     zPrior = V.fromList . replicate numTopics $ logFloat 1
     wPrior = onesFrom w
     numDocs = 1 + V.maximum d
@@ -88,9 +90,9 @@ main = do
     B.hPutStrLn h ldacNews
   hSetBuffering stdout LineBuffering
   g <- MWC.create
-  -- z0 <- fmap (V.fromList) . replicateM (V.length w) $ MWC.uniformR (0,numTopics-1) g
+  --z0 <- V.replicateM numWords $ MWC.uniformR (0,numTopics - 1) g
   putStrLn . intercalate "," . map show . V.toList $ z0
-  chain g z0 (\z -> next z0) $ \zs -> do
+  chain g z0 (\z -> next z) $ \zs -> do
     putStrLn . intercalate "," . map show . V.toList $ zs
   ---forM_ [0..(V.length topics - 1)] $ \i -> do
     --print $ V.map logFromLogFloat $ predict i
