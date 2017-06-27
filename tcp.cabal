@@ -19,6 +19,7 @@ library
                      , Utils
                      , NaiveBayes.Model
                      , LDA.Model
+                     , LDA2.Model
   build-depends:       base >= 4.7 && < 5
                      , unordered-containers
                      , containers
@@ -72,6 +73,25 @@ executable tcp1
 executable tcp2
   hs-source-dirs:      app
   main-is:             TCP2.hs
+  ghc-options:         
+    -O2 
+    -threaded 
+    -fprof-auto 
+ --   -rtsopts 
+ --   "-with-rtsopts=-N -p -s -h -i0.1"
+  build-depends:       base
+                     , tcp
+                     , unordered-containers
+                     , bytestring
+                     , logfloat
+                     , mwc-random
+                     , vector
+                     , hakaru
+  default-language:    Haskell2010
+
+executable tcp3
+  hs-source-dirs:      app
+  main-is:             TCP3.hs
   ghc-options:         
     -O2 
     -threaded 

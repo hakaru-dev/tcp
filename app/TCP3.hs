@@ -20,6 +20,14 @@ import News
 import Debug.Trace
 import Control.Monad.ST
 
+data Stats = Stats 
+  { z        :: Vector Int
+  , zCounts  :: Vector Int
+  , wzCounts :: Vector Int
+  , dzCounts :: Vector Int
+  }
+  deriving Show
+
 
 -- |Step through documents, performing one Gibbs sampling iteration
 -- on each to select a new topic. 
@@ -35,37 +43,42 @@ import Control.Monad.ST
 --   -> MVector IO Int
 --   -> MVector IO Int
 --   -> Measure (Vector Int) -- distribution over the updated topic
-gibbsRound zPrior wPrior numTopics w d mn_wz mn_dz mn_z z = Measure $ \g -> do
-  -- withFile "z" AppendMode $ \zHandle -> do
+gibbsRound zPrior wPrior numTopics w d stats = Measure $ \g -> do
     let
-      numTokens = V.length z
-      loop i mz = do
-        if i == numTokens then do
-          Just <$> V.unsafeFreeze mz
+      numTokens = V.length $ z stats
+      loop i stats = do
+        if i == numTokens then return (Just stats)
         else do
-          gibbsStep g zPrior wPrior numTopics w d mz i mn_wz mn_dz mn_z
-          loop (i + 1) mz
-    loop 0 =<< V.unsafeThaw z
+          stats' <- gibbsStep g zPrior wPrior numTopics w d i stats
+          loop (i + 1) stats'
+    loop 0 stats
 
-gibbsStep g zPrior wPrior numTopics w d mz i mn_wz mn_dz mn_z = do
-  z    <- V.freeze mz 
-  n_wz <- V.freeze mn_wz
-  n_dz <- V.freeze mn_dz
-  n_z  <- V.freeze mn_z
-  oldZ <- MV.read mz i
+-- | A single Gibbs step, i.e., update a single variable
+gibbsStep g zPrior wPrior numTopics w d i stats = do
+  let
+    Stats z n_z n_wz n_dz = stats 
+    oldZ = z!i
   newZ <- sample g $ prog zPrior wPrior numTopics w d z i n_wz n_dz n_z
-  updateStats numTopics mn_wz mn_dz mn_z i (d!i) oldZ newZ
-  MV.write mz i newZ
+  updateStats i numTopics (w!i) (d!i) stats oldZ newZ
 
-updateStats numTopics mn_wz mn_dz mn_z i doc oldZ newZ = do
-  move mn_wz (i*numTopics + oldZ) (i*numTopics + newZ) 
-  move mn_dz (doc*numTopics + oldZ) (doc*numTopics + newZ) 
-  move mn_z oldZ newZ
+updateStats i numTopics word doc stats oldZ newZ = do
+  let Stats z n_z n_wz n_dz = stats
+  n_wz' <- move n_wz (word*numTopics + oldZ) (word*numTopics + newZ) 
+  n_dz' <- move n_dz (doc*numTopics + oldZ) (doc*numTopics + newZ) 
+  n_z'  <- move n_z oldZ newZ
+  z'    <- inPlace z $ \mz -> MV.write mz i newZ
+  return $ Stats z' n_z' n_wz' n_dz'
 
-move mv old new = do
+-- | Move a single count in vector `v` from index `old` to index `new`
+move :: Vector Int -> Int -> Int -> IO (Vector Int)
+move v old new = inPlace v $ \mv -> do
   MV.modify mv (subtract 1) old
   MV.modify mv (+ 1) new
 
+inPlace v f = do
+  mv <- V.unsafeThaw v
+  f mv 
+  V.unsafeFreeze mv
 
 -- -- |Wrap 'gibbsRound' for simple testing
 -- next :: Vector Int -> Measure (Vector Int)
@@ -86,16 +99,12 @@ counts :: MV.Unbox a => Int -> Vector a -> (a -> Int) -> Vector Int
 counts n v f = runST $ do
   t <- MV.replicate n 0
   V.forM_ v $ \x -> MV.modify t (+1) (f x)
-  V.freeze t
-
--- | Outer product
-(><) :: Vector Int -> Vector Int -> Vector (Int,Int)
-(><) x y = V.fromList [(i,j) | i <- V.toList x, j <- V.toList y]
+  V.unsafeFreeze t
 
 main :: IO ()
 main = do
   let corpus = "20_newsgroups"
-  (news, enc) <- getNewsL corpus SingleDoc (Just 10) [1,7]
+  (news, enc) <- getNewsL corpus SingleDoc Nothing [1,7]
   -- print news
   let 
     ldacNews = ldac news
@@ -106,18 +115,11 @@ main = do
     wPrior = onesFrom w
     numDocs = 1 + V.maximum d
     z0 = V.fromList . take (V.length w) $ cycle [0..(numTopics-1)]
-  mn_wz <- V.thaw $ counts (numWords * numTopics) (w >< z0) $ \(w,z) -> w*numTopics + z
-  mn_dz <- V.thaw $ counts (numDocs * numTopics) (d >< z0) $ \(d,z) -> d*numTopics + z
-  mn_z  <- V.thaw $ counts numTopics z0 id
-  let 
-    next = gibbsRound zPrior wPrior numDocs w d mn_wz mn_dz mn_z
-
-  -- printf "length zPrior == %d\n" (V.length zPrior)
-  -- printf "length wPrior == %d\n" (V.length wPrior)
-  -- printf "length words  == %d\n" (V.length words)
-  -- printf "length docs   == %d\n" (V.length docs)
-  -- printf "length topics == %d\n" (V.length topics)
-  
+    n_wz = counts (numWords * numTopics) (V.zip w z0) $ \(w,z) -> w*numTopics + z
+    n_dz = counts (numDocs * numTopics) (V.zip d z0) $ \(d,z) -> d*numTopics + z
+    n_z  = counts numTopics z0 id
+    stats = Stats z0 n_z n_wz n_dz
+    next = gibbsRound zPrior wPrior numTopics w d
   writeVec "words" w
   writeVec "docs" d
   writeVec "topics" topics
@@ -128,9 +130,9 @@ main = do
   hSetBuffering stdout LineBuffering
   g <- MWC.create
   --z0 <- V.replicateM numWords $ MWC.uniformR (0,numTopics - 1) g
-  putStrLn . intercalate "," . map show . V.toList $ z0
-  chain g z0 (\z -> next z) $ \zs -> do
-    putStrLn . intercalate "," . map show . V.toList $ zs
+  putStrLn . intercalate "," . map show . V.toList $ z stats
+  chain g stats next $ \stats -> do
+    putStrLn . intercalate "," . map show . V.toList $ z stats
   ---forM_ [0..(V.length topics - 1)] $ \i -> do
     --print $ V.map logFromLogFloat $ predict i
   --  printf "%d, %d\n" (topics ! i) (V.maxIndex $ predict i)

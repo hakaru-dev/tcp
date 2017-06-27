@@ -13,7 +13,7 @@ fn topic_prior array(prob):
                true:  1
                false: 0
              real2prob(
-               (n_wz[w[nUp]*numTopics + zNew] - zMatch + prob2real(word_prior[nUp]))
+               (n_wz[w[nUp]*numTopics + zNew] - zMatch + prob2real(word_prior[w[nUp]]))
                *
                (n_dz[d[nUp]*numTopics + zNew] - zMatch + prob2real(topic_prior[zNew]))
                /
