@@ -15,7 +15,7 @@ import           System.Environment (getArgs)
 prog = 
   lam $ \ topic_prior0 ->
   lam $ \ word_prior1 ->
-  lam $ \ numDocs2 ->
+  lam $ \ numTopics2 ->
   lam $ \ w3 ->
   lam $ \ d4 ->
   lam $ \ z5 ->
@@ -25,13 +25,13 @@ prog =
   lam $ \ n_z9 ->
   categorical (array (size topic_prior0) $
                      \ zNew10 ->
-                     unsafeProb ((fromInt (n_wz7 ! (w3 ! nUp6) ! zNew10) +
+                     unsafeProb ((fromInt (n_wz7 ! (w3 ! nUp6 * numTopics2 + zNew10)) +
                                   fromInt (nat2int (case_ (z5 ! nUp6 == zNew10)
                                                           [branch ptrue (nat_ 1),
                                                            branch pfalse (nat_ 0)]) *
                                            int_ -1) +
                                   fromProb (word_prior1 ! nUp6)) *
-                                 (fromInt (n_dz8 ! (d4 ! nUp6) ! zNew10) +
+                                 (fromInt (n_dz8 ! (d4 ! nUp6 * numTopics2 + zNew10)) +
                                   fromInt (nat2int (case_ (z5 ! nUp6 == zNew10)
                                                           [branch ptrue (nat_ 1),
                                                            branch pfalse (nat_ 0)]) *
