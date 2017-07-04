@@ -1,5 +1,5 @@
-fn topic_prior array(prob): 
- fn word_prior array(prob): 
+fn topic_prior prob: 
+ fn word_prior prob: 
   fn numTopics nat: 
    fn w array(nat): 
     fn d array(nat): 
@@ -8,15 +8,15 @@ fn topic_prior array(prob):
        fn n_wz array(int):
         fn n_dz array(int):
          fn n_z array(int):
-           categorical(array zNew of size(topic_prior):
+           categorical(array zNew of numTopics:
              zMatch = match (z[nUp] == zNew):
                true:  1
                false: 0
              real2prob(
-               (n_wz[w[nUp]*numTopics + zNew] - zMatch + prob2real(word_prior[w[nUp]]))
+               (n_wz[w[nUp]*numTopics + zNew] - zMatch + prob2real(word_prior))
                *
-               (n_dz[d[nUp]*numTopics + zNew] - zMatch + prob2real(topic_prior[zNew]))
+               (n_dz[d[nUp]*numTopics + zNew] - zMatch + prob2real(topic_prior))
                /
-               (n_z[zNew] - zMatch + prob2real(summate n from 0 to size(word_prior): word_prior[n]))
+               (n_z[zNew] - zMatch + prob2real(size(w) * word_prior))
              )  
            )

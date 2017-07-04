@@ -104,15 +104,15 @@ counts n v f = runST $ do
 main :: IO ()
 main = do
   let corpus = "20_newsgroups"
-  (news, enc) <- getNewsL corpus SingleDoc Nothing [1,7]
+  (news, enc) <- getNewsL corpus SingleDoc Nothing [0..]
   -- print news
   let 
     ldacNews = ldac news
     (w,d,topics) = asArrays news
     numWords = V.length w
-    numTopics = 10 :: Int
-    zPrior = V.fromList . replicate numTopics $ logFloat 1
-    wPrior = onesFrom w
+    numTopics = 30 :: Int
+    zPrior = logFloat 1
+    wPrior = logFloat 1
     numDocs = 1 + V.maximum d
     z0 = V.fromList . take (V.length w) $ cycle [0..(numTopics-1)]
     n_wz = counts (numWords * numTopics) (V.zip w z0) $ \(w,z) -> w*numTopics + z
