@@ -1,4 +1,4 @@
 [submodule "hakaru"]
 	path = hakaru
 	url = https://github.com/hakaru-dev/hakaru
-	branch = stable
+	branch = v0.4
