@@ -11,13 +11,13 @@ import qualified System.Random.MWC                as MWC
 import           Control.Monad
 import           System.Environment (getArgs)
 
-prog ::
-  ((MayBoxVec Prob Prob) ->
-   ((MayBoxVec Prob Prob) ->
-    (Int ->
-     ((MayBoxVec Int Int) ->
-      ((MayBoxVec Int Int) ->
-       ((MayBoxVec Int Int) -> (Int -> (Measure Int))))))))
+-- prog ::
+--  ((MayBoxVec Prob Prob) ->
+--   ((MayBoxVec Prob Prob) ->
+--    (Int ->
+--     ((MayBoxVec Int Int) ->
+--      ((MayBoxVec Int Int) ->
+--       ((MayBoxVec Int Int) -> (Int -> (Measure Int))))))))
 prog =
   lam $ \ topic_prior0 ->
   lam $ \ word_prior1 ->
