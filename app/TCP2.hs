@@ -13,6 +13,7 @@ import Control.Monad (forM_)
 import Data.List (sort, intercalate)
 import Data.Number.LogFloat
 import Language.Hakaru.Runtime.LogFloatPrelude
+import Language.Hakaru.Runtime.CmdLine
 import System.IO
 import News
 import Debug.Trace
@@ -74,7 +75,7 @@ main = do
     wPrior = onesFrom w
     numDocs = 1 + V.maximum d
     z0 = V.fromList . take (V.length w) $ cycle [0..(numTopics-1)]
-    next = gibbsRound zPrior wPrior numDocs w d
+    -- next = gibbsRound zPrior wPrior numDocs w d
   -- printf "length zPrior == %d\n" (V.length zPrior)
   -- printf "length wPrior == %d\n" (V.length wPrior)
   -- printf "length words  == %d\n" (V.length words)
@@ -88,12 +89,12 @@ main = do
     forM_ (reverse $ vocabReverse enc) $ \x -> B.hPutStrLn h x
   withFile "ldac" WriteMode $ \h -> do
     B.hPutStrLn h ldacNews
-  hSetBuffering stdout LineBuffering
-  g <- MWC.create
-  --z0 <- V.replicateM numWords $ MWC.uniformR (0,numTopics - 1) g
-  putStrLn . intercalate "," . map show . V.toList $ z0
-  chain g z0 (\z -> next z) $ \zs -> do
-    putStrLn . intercalate "," . map show . V.toList $ zs
+  -- hSetBuffering stdout LineBuffering
+  -- g <- MWC.create
+  -- --z0 <- V.replicateM numWords $ MWC.uniformR (0,numTopics - 1) g
+  -- putStrLn . intercalate "," . map show . V.toList $ z0
+  -- chain g z0 (\z -> next z) $ \zs -> do
+  --   putStrLn . intercalate "," . map show . V.toList $ zs
   ---forM_ [0..(V.length topics - 1)] $ \i -> do
     --print $ V.map logFromLogFloat $ predict i
   --  printf "%d, %d\n" (topics ! i) (V.maxIndex $ predict i)

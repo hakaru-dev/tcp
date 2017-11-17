@@ -13,6 +13,7 @@ import Data.Vector.Unboxed (Vector)
 import           Prelude                          hiding (product)
 import           Language.Hakaru.Runtime.Prelude hiding (iterateM_, unMeasure, Measure)
 import           Language.Hakaru.Runtime.LogFloatPrelude
+import           Language.Hakaru.Runtime.CmdLine
 import           Language.Hakaru.Types.Sing
 import qualified System.Random.MWC                as MWC
 import           Control.Monad

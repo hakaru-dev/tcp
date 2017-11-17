@@ -5,7 +5,7 @@ import           Data.Number.LogFloat (LogFloat)
 import           Prelude              hiding (product, exp, log, (**))
 
 import           Language.Hakaru.Runtime.LogFloatPrelude
-import           Language.Hakaru.Runtime.LogFloatCmdLine
+import           Language.Hakaru.Runtime.CmdLine
 
 import           Language.Hakaru.Types.Sing
 import qualified System.Random.MWC                as MWC

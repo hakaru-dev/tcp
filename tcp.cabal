@@ -89,35 +89,35 @@ executable tcp2
                      , hakaru
   default-language:    Haskell2010
 
-executable tcp3
-  hs-source-dirs:      app
-  main-is:             TCP3.hs
-  ghc-options:         
-    -O2 
-    -threaded 
-    -fprof-auto 
- --   -rtsopts 
- --   "-with-rtsopts=-N -p -s -h -i0.1"
-  build-depends:       base
-                     , tcp
-                     , unordered-containers
-                     , bytestring
-                     , logfloat
-                     , mwc-random
-                     , vector
-                     , hakaru
-  default-language:    Haskell2010
+-- executable tcp3
+--   hs-source-dirs:      app
+--   main-is:             TCP3.hs
+--   ghc-options:         
+--     -O2 
+--     -threaded 
+--     -fprof-auto 
+--  --   -rtsopts 
+--  --   "-with-rtsopts=-N -p -s -h -i0.1"
+--   build-depends:       base
+--                      , tcp
+--                      , unordered-containers
+--                      , bytestring
+--                      , logfloat
+--                      , mwc-random
+--                      , vector
+--                      , hakaru
+--   default-language:    Haskell2010
 
-test-suite tcp-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  build-depends:       base
-                     , tcp
-                     , unordered-containers
-                     , containers
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
+-- test-suite tcp-test
+--   type:                exitcode-stdio-1.0
+--   hs-source-dirs:      test
+--   main-is:             Spec.hs
+--   build-depends:       base
+--                      , tcp
+--                      , unordered-containers
+--                      , containers
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   default-language:    Haskell2010
 
 source-repository head
   type:     git

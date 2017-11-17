@@ -2,7 +2,7 @@ Pkg.add("DataFrames")
 
 using DataFrames
 
-cd("/home/chad/git/iu/tcp/")
+#cd("/home/chad/git/iu/tcp/")
 
 function readcol(fname)
   Vector(readtable(fname, header=false)[:,1])
